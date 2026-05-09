@@ -1,0 +1,151 @@
+{
+  "info": {
+    "name": "School Management API",
+    "_postman_id": "school-mgmt-collection-v1",
+    "description": "API collection for School Management System\n\nBase URL: http://localhost:3000\n\nEndpoints:\n1. POST /addSchool - Add a new school\n2. GET /listSchools - Get schools sorted by distance",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string",
+      "description": "Change this to your hosted URL when deployed"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/",
+          "host": ["{{base_url}}"],
+          "path": [""]
+        },
+        "description": "Check if the API server is running"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "body": "{\n  \"success\": true,\n  \"message\": \"School Management API is running 🚀\",\n  \"endpoints\": {\n    \"addSchool\": \"POST /addSchool\",\n    \"listSchools\": \"GET /listSchools?latitude=<lat>&longitude=<lng>\"\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Add School",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/addSchool",
+          "host": ["{{base_url}}"],
+          "path": ["addSchool"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Delhi Public School\",\n  \"address\": \"Mathura Road, New Delhi, India\",\n  \"latitude\": 28.5355,\n  \"longitude\": 77.2410\n}",
+          "options": {
+            "raw": { "language": "json" }
+          }
+        },
+        "description": "Adds a new school to the database.\n\n**Required fields:**\n- name (string, non-empty)\n- address (string, non-empty)\n- latitude (float, -90 to 90)\n- longitude (float, -180 to 180)"
+      },
+      "response": [
+        {
+          "name": "201 - School Added Successfully",
+          "status": "Created",
+          "code": 201,
+          "body": "{\n  \"success\": true,\n  \"message\": \"School added successfully\",\n  \"data\": {\n    \"id\": 1,\n    \"name\": \"Delhi Public School\",\n    \"address\": \"Mathura Road, New Delhi, India\",\n    \"latitude\": 28.5355,\n    \"longitude\": 77.241\n  }\n}"
+        },
+        {
+          "name": "400 - Validation Error",
+          "status": "Bad Request",
+          "code": 400,
+          "body": "{\n  \"success\": false,\n  \"message\": \"Validation failed\",\n  \"errors\": [\n    \"name is required and must be a non-empty string\"\n  ]\n}"
+        }
+      ]
+    },
+    {
+      "name": "Add School - Missing Fields (Test Validation)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/addSchool",
+          "host": ["{{base_url}}"],
+          "path": ["addSchool"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"\",\n  \"address\": \"Some Address\",\n  \"latitude\": 999,\n  \"longitude\": 77.2\n}",
+          "options": {
+            "raw": { "language": "json" }
+          }
+        },
+        "description": "Tests validation — should return 400 with error messages"
+      },
+      "response": []
+    },
+    {
+      "name": "List Schools (sorted by proximity)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/listSchools?latitude=28.6139&longitude=77.2090",
+          "host": ["{{base_url}}"],
+          "path": ["listSchools"],
+          "query": [
+            {
+              "key": "latitude",
+              "value": "28.6139",
+              "description": "User's current latitude (New Delhi)"
+            },
+            {
+              "key": "longitude",
+              "value": "77.2090",
+              "description": "User's current longitude (New Delhi)"
+            }
+          ]
+        },
+        "description": "Fetches all schools and sorts them by distance from the given coordinates using the Haversine formula.\n\n**Required query params:**\n- latitude (float)\n- longitude (float)"
+      },
+      "response": [
+        {
+          "name": "200 - Schools List",
+          "status": "OK",
+          "code": 200,
+          "body": "{\n  \"success\": true,\n  \"message\": \"Schools fetched and sorted by proximity\",\n  \"user_location\": {\n    \"latitude\": 28.6139,\n    \"longitude\": 77.209\n  },\n  \"count\": 3,\n  \"data\": [\n    {\n      \"id\": 4,\n      \"name\": \"St. Columba School\",\n      \"address\": \"Ashok Place, New Delhi\",\n      \"latitude\": 28.6353,\n      \"longitude\": 77.209,\n      \"distance_km\": 2.38\n    },\n    {\n      \"id\": 5,\n      \"name\": \"Modern School\",\n      \"address\": \"Barakhamba Road, New Delhi\",\n      \"latitude\": 28.629,\n      \"longitude\": 77.2274,\n      \"distance_km\": 2.71\n    },\n    {\n      \"id\": 1,\n      \"name\": \"Delhi Public School\",\n      \"address\": \"Mathura Road, New Delhi\",\n      \"latitude\": 28.5355,\n      \"longitude\": 77.241,\n      \"distance_km\": 8.82\n    }\n  ]\n}"
+        },
+        {
+          "name": "400 - Missing Parameters",
+          "status": "Bad Request",
+          "code": 400,
+          "body": "{\n  \"success\": false,\n  \"message\": \"Validation failed\",\n  \"errors\": [\n    \"latitude query parameter is required\"\n  ]\n}"
+        }
+      ]
+    },
+    {
+      "name": "List Schools - Missing Params (Test Validation)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/listSchools",
+          "host": ["{{base_url}}"],
+          "path": ["listSchools"]
+        },
+        "description": "Tests validation — should return 400 when lat/lng are missing"
+      },
+      "response": []
+    }
+  ]
+}
